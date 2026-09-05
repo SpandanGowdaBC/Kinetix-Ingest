@@ -1,0 +1,5 @@
+{
+  "summary": "Factory Pattern Implementation EventProcessorFactory for instantiating specialized telemetry event strategy handlers.",
+  "updatedAt": "2026-09-05T06:03:31.755818300Z",
+  "userFacing": true
+}

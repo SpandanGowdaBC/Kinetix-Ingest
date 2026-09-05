@@ -1,0 +1,5 @@
+{
+  "summary": "Spring JDBC NamedParameterJdbcTemplate ClickHouse Native Writer Service executing high-throughput batch inserts and analytical queries.",
+  "updatedAt": "2026-09-05T05:05:49.045834500Z",
+  "userFacing": true
+}

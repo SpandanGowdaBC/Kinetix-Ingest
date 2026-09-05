@@ -1,0 +1,5 @@
+{
+  "summary": "Spring Boot REST IngestionController for ingestion requests and ClickHouse analytics aggregations.",
+  "updatedAt": "2026-09-05T06:03:55.858034800Z",
+  "userFacing": true
+}
