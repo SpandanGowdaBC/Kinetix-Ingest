@@ -1,5 +1,0 @@
-{
-  "summary": "Application configuration application.yml for Kinetix-Ingest Java service defining ClickHouse JDBC connection pools and Kafka topics.",
-  "updatedAt": "2026-09-05T05:05:38.229066900Z",
-  "userFacing": true
-}
