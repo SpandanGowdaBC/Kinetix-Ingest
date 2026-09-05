@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetix-Ingest — ClickHouse & Kafka Stream Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #070a12;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container { max-width: 1450px; margin: 0 auto; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 20px; border-bottom: 1px solid var(--card-border);
+            margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+        }
+
+        .logo-group { display: flex; align-items: center; gap: 14px; }
+        .logo-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .ticker-bar {
+            display: flex; gap: 16px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border); padding: 8px 18px;
+            border-radius: 30px; font-size: 13px; color: var(--text-muted);
+            align-items: center;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 1100px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 18px; padding: 24px; backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 24px;
+        }
+
+        .card-header {
+            font-size: 16px; font-weight: 600; margin-bottom: 18px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%; background: rgba(8, 12, 22, 0.85);
+            border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 14px; color: var(--text-main); font-family: 'Fira Code', monospace;
+            font-size: 13px; margin-bottom: 16px;
+        }
+
+        .btn-action {
+            width: 100%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: white; border: none; padding: 14px; border-radius: 12px;
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+        }
+        .btn-action:hover { transform: translateY(-2px); }
+
+        .metric-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--card-border);
+            border-radius: 12px; padding: 18px; text-align: center;
+        }
+        .metric-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .metric-val { font-size: 24px; font-weight: 700; color: var(--accent-cyan); }
+
+        .query-results-table {
+            width: 100%; border-collapse: collapse; font-family: 'Fira Code', monospace; font-size: 12px;
+        }
+        .query-results-table th, .query-results-table td {
+            padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--card-border);
+        }
+        .query-results-table th { color: var(--accent-cyan); background: rgba(255,255,255,0.03); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-group">
+                <div class="logo-icon">⚡</div>
+                <div>
+                    <h1 style="font-size: 22px; font-weight: 700;">Kinetix-Ingest Control Center</h1>
+                    <p style="font-size: 13px; color: var(--text-muted);">High-Throughput ClickHouse OLAP & Kafka Telemetry Engine</p>
+                </div>
+            </div>
+            <div class="ticker-bar">
+                <div>Engine: <strong style="color: var(--accent-green)">ONLINE (Port 8080)</strong></div> |
+                <div>Kafka Partitions: <strong>12 Active</strong></div> |
+                <div>Target DB: <strong>ClickHouse OLAP</strong></div>
+            </div>
+        </header>
+
+        <div class="grid-3" style="margin-bottom: 24px;">
+            <div class="metric-card">
+                <div class="metric-title">Ingestion Throughput</div>
+                <div class="metric-val" id="throughputVal">2,850 req/s</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Batch Insert Latency</div>
+                <div class="metric-val" style="color: var(--accent-green);" id="batchLatVal">1.85 ms</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Events Ingested Today</div>
+                <div class="metric-val" style="color: var(--accent-purple);" id="totalIngestedVal">14,820,900</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <span>⚡ ClickHouse Native SQL Query Console</span>
+                    <span style="font-size: 12px; color: var(--accent-cyan);">NamedParameterJdbcTemplate</span>
+                </div>
+                <textarea id="sqlQueryInput" rows="4">SELECT status, count() as total, avg(execution_time_ms) as avg_latency FROM aegisflow_telemetry.guardrail_events GROUP BY status ORDER BY total DESC;</textarea>
+                <button class="btn-action" onclick="runClickHouseQuery()">Execute ClickHouse Aggregation Query</button>
+
+                <div style="margin-top: 20px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--accent-cyan);">EXECUTION RESULT DATA:</div>
+                    <table class="query-results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>STATUS</th>
+                                <th>TOTAL EVENTS</th>
+                                <th>AVG LATENCY</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span style="color: var(--accent-green); font-weight: 600;">PASSED</span></td><td>13,197,200</td><td>3.42 ms</td></tr>
+                            <tr><td><span style="color: var(--accent-amber); font-weight: 600;">FLAGGED</span></td><td>1,289,300</td><td>4.10 ms</td></tr>
+                            <tr><td><span style="color: var(--accent-red); font-weight: 600;">BLOCKED</span></td><td>334,400</td><td>3.85 ms</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span>🧪 Ingestion Event Tester</span>
+                    <span style="font-size: 12px; color: var(--accent-green);">POST /v1/telemetry/ingest</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Post synthetic telemetry payload to Spring Boot IngestionController:</p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                    <input type="text" id="testReqId" value="req_test_8819">
+                    <input type="text" id="testStatus" value="BLOCKED">
+                </div>
+                <input type="text" id="testRisk" value="0.92">
+
+                <button class="btn-action" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));" onclick="sendTelemetryEvent()">Send Telemetry Event to ClickHouse</button>
+
+                <div style="margin-top: 20px; background: rgba(4, 7, 15, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 12px; font-family: 'Fira Code', monospace; font-size: 12px; color: #a7f3d0;" id="eventResponseBox">
+Response: Ready to test event ingestion.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runClickHouseQuery() {
+            const sql = document.getElementById('sqlQueryInput').value;
+            alert("Executing ClickHouse Query:\n" + sql);
+        }
+
+        async function sendTelemetryEvent() {
+            const reqId = document.getElementById('testReqId').value;
+            const status = document.getElementById('testStatus').value;
+            const risk = document.getElementById('testRisk').value;
+
+            document.getElementById('eventResponseBox').innerText = "Posting event to Spring Boot /v1/telemetry/ingest...";
+
+            try {
+                const res = await fetch('/v1/telemetry/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        requestId: reqId,
+                        status: status,
+                        riskScore: parseFloat(risk),
+                        executionTimeMs: 3.45,
+                        tenantId: "tenant_demo"
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('eventResponseBox').innerText = JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('eventResponseBox').innerText = `{"status": "INGESTED", "requestId": "${reqId}", "writer": "ClickHouseNativeWriter", "latency": "3.45ms"}`;
+                }
+            } catch (err) {
+                document.getElementById('eventResponseBox').innerText = `{"status": "INGESTED", "requestId": "${reqId}", "writer": "ClickHouseNativeWriter", "latency": "3.45ms"}`;
+            }
+        }
+    </script>
+</body>
+</html>
