@@ -1,4 +1,4 @@
-# Kinetix-Ingest ⚡🚀
+﻿# Kinetix-Ingest ⚡🚀
 > **High-Throughput Distributed Event Ingestion Engine (Java 21, Spring Boot, Kafka, ClickHouse)**
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
@@ -22,5 +22,10 @@
 
 ---
 
-## 🎯 Resume & Interview Summary
-> *"Developed Kinetix-Ingest, a distributed high-throughput event ingestion engine in Java 21, Spring Boot 3.x, Apache Kafka, and ClickHouse. Implemented Factory and Strategy design patterns to transform telemetry streams and optimized SQL batch inserts using NamedParameterJdbcTemplate."*
+---
+
+## Author
+
+**Spandan Gowda B C**
+* **GitHub**: [@SpandanGowdaBC](https://github.com/SpandanGowdaBC)
+* **Repository**: [Kinetix-Ingest](https://github.com/SpandanGowdaBC/Kinetix-Ingest)
