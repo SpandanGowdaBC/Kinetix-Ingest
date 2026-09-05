@@ -8,11 +8,17 @@
 
 ---
 
+![Kinetix-Ingest Dashboard](docs/dashboard.png)
+
+
 ## 📌 Executive Summary
 
 **Kinetix-Ingest** is a low-latency, enterprise distributed event ingestion engine built in **Java 21** and **Spring Boot 3.2**. It handles high-concurrency risk and telemetry event streams by combining **Apache Kafka** messaging brokers with **ClickHouse** columnar storage via high-speed Spring JDBC batch execution.
 
 ---
+
+![Kinetix-Ingest Dashboard](docs/dashboard.png)
+
 
 ## 🏗️ Design Patterns & Architecture
 
@@ -22,7 +28,13 @@
 
 ---
 
+![Kinetix-Ingest Dashboard](docs/dashboard.png)
+
+
 ---
+
+![Kinetix-Ingest Dashboard](docs/dashboard.png)
+
 
 ## Author
 
