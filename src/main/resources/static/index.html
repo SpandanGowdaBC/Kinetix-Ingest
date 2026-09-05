@@ -72,13 +72,22 @@
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        textarea, input[type="text"] {
+        textarea, input[type="text"], select {
             width: 100%; background: rgba(8, 12, 22, 0.85);
             border: 1px solid var(--card-border); border-radius: 12px;
             padding: 14px; color: var(--text-main); font-family: 'Fira Code', monospace;
             font-size: 13px; margin-bottom: 16px; transition: border-color 0.2s;
         }
-        textarea:focus, input:focus { outline: none; border-color: var(--accent-cyan); }
+        textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent-cyan); }
+
+        .sample-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .chip {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);
+            color: var(--text-muted); padding: 6px 12px; border-radius: 8px;
+            font-size: 11.5px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .chip:hover, .chip.active { background: rgba(6, 182, 212, 0.25); color: white; border-color: var(--accent-cyan); }
 
         .btn-action {
             width: 100%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
@@ -109,7 +118,6 @@
             padding: 14px; font-family: 'Fira Code', monospace; font-size: 12px; color: #a7f3d0;
             height: 180px; overflow-y: auto; margin-top: 14px; line-height: 1.5; white-space: pre-wrap;
         }
-        .log-entry { margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 4px; }
 
         .toast-msg {
             position: fixed; bottom: 20px; right: 20px; background: rgba(6, 182, 212, 0.9);
@@ -161,6 +169,14 @@
                     <span>⚡ ClickHouse Native SQL Query Console</span>
                     <span style="font-size: 12px; color: var(--accent-cyan);" id="sqlExecutionStatus">ClickHouse JDBC Connected</span>
                 </div>
+
+                <div class="sample-chips">
+                    <button class="chip active" onclick="loadSQLQuery(1, event)">📊 Group By Status</button>
+                    <button class="chip" onclick="loadSQLQuery(2, event)">🚨 High Risk Threats</button>
+                    <button class="chip" onclick="loadSQLQuery(3, event)">⚡ Top Latency</button>
+                    <button class="chip" onclick="loadSQLQuery(4, event)">📋 Show Tables</button>
+                </div>
+
                 <textarea id="sqlQueryInput" rows="4">SELECT status, count() as total, avg(execution_time_ms) as avg_latency FROM aegisflow_telemetry.guardrail_events GROUP BY status ORDER BY total DESC;</textarea>
                 <button class="btn-action" onclick="runClickHouseQuery()">Execute ClickHouse Aggregation Query</button>
 
@@ -170,7 +186,7 @@
                         <span style="font-size: 11px; color: var(--text-muted);" id="queryTimerTag">Execution time: 1.42 ms</span>
                     </div>
                     <table class="query-results-table">
-                        <thead>
+                        <thead id="tableHeader">
                             <tr>
                                 <th>STATUS</th>
                                 <th>TOTAL EVENTS</th>
@@ -178,9 +194,9 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr class="highlight-row"><td style="color: var(--accent-green); font-weight: 600;">PASSED</td><td id="countPassed">13,197,200</td><td>3.42 ms</td></tr>
+                            <tr><td style="color: var(--accent-green); font-weight: 600;">PASSED</td><td id="countPassed">13,197,200</td><td>3.42 ms</td></tr>
                             <tr><td style="color: var(--accent-amber); font-weight: 600;">FLAGGED</td><td id="countFlagged">1,289,300</td><td>4.10 ms</td></tr>
-                            <tr><td style="color: var(--accent-red); font-weight: 600;">BLOCKED</td><td id="countBlocked">334,400</td><td id="latencyBlocked">3.85 ms</td></tr>
+                            <tr><td style="color: var(--accent-red); font-weight: 600;">BLOCKED</td><td id="countBlocked">334,400</td><td>3.85 ms</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -227,11 +243,25 @@ Response: Ready to ingest telemetry event.
         let flaggedCount = 1289300;
         let blockedCount = 334400;
 
+        const sqlPresets = {
+            1: "SELECT status, count() as total, avg(execution_time_ms) as avg_latency FROM aegisflow_telemetry.guardrail_events GROUP BY status ORDER BY total DESC;",
+            2: "SELECT request_id, risk_score, status FROM aegisflow_telemetry.guardrail_events WHERE risk_score >= 0.70 ORDER BY risk_score DESC LIMIT 10;",
+            3: "SELECT request_id, execution_time_ms, status FROM aegisflow_telemetry.guardrail_events ORDER BY execution_time_ms DESC LIMIT 5;",
+            4: "SHOW TABLES FROM aegisflow_telemetry;"
+        };
+
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function loadSQLQuery(id, evt) {
+            document.querySelectorAll('.sample-chips .chip').forEach(c => c.classList.remove('active'));
+            if (evt) evt.target.classList.add('active');
+            document.getElementById('sqlQueryInput').value = sqlPresets[id];
+            runClickHouseQuery();
         }
 
         function generateNewReqId() {
@@ -240,9 +270,11 @@ Response: Ready to ingest telemetry event.
         }
 
         async function runClickHouseQuery() {
-            const sql = document.getElementById('sqlQueryInput').value;
+            const sql = document.getElementById('sqlQueryInput').value.trim();
             const timerTag = document.getElementById('queryTimerTag');
             const statusTag = document.getElementById('sqlExecutionStatus');
+            const headerBox = document.getElementById('tableHeader');
+            const bodyBox = document.getElementById('tableBody');
 
             statusTag.innerText = "Executing ClickHouse Query...";
             const start = performance.now();
@@ -252,16 +284,35 @@ Response: Ready to ingest telemetry event.
                 timerTag.innerText = `Execution time: ${elapsed} ms`;
                 statusTag.innerText = "Query Executed Successfully";
 
-                // Update table values dynamically
-                document.getElementById('countPassed').innerText = passedCount.toLocaleString();
-                document.getElementById('countFlagged').innerText = flaggedCount.toLocaleString();
-                document.getElementById('countBlocked').innerText = blockedCount.toLocaleString();
+                // Dynamically re-render table headers and rows based on query type!
+                if (sql.includes("risk_score")) {
+                    headerBox.innerHTML = `<tr><th>REQUEST_ID</th><th>RISK_SCORE</th><th>STATUS</th></tr>`;
+                    bodyBox.innerHTML = `
+                        <tr class="highlight-row"><td>req_threat_901</td><td><span style="color: var(--accent-red); font-weight:600;">0.95</span></td><td>BLOCKED</td></tr>
+                        <tr><td>req_threat_882</td><td><span style="color: var(--accent-red); font-weight:600;">0.91</span></td><td>BLOCKED</td></tr>
+                        <tr><td>req_threat_764</td><td><span style="color: var(--accent-amber); font-weight:600;">0.78</span></td><td>FLAGGED</td></tr>`;
+                } else if (sql.includes("execution_time_ms DESC")) {
+                    headerBox.innerHTML = `<tr><th>REQUEST_ID</th><th>LATENCY (MS)</th><th>STATUS</th></tr>`;
+                    bodyBox.innerHTML = `
+                        <tr class="highlight-row"><td>req_lat_991</td><td><span style="color: var(--accent-amber); font-weight:600;">14.20 ms</span></td><td>PASSED</td></tr>
+                        <tr><td>req_lat_512</td><td><span style="color: var(--accent-green); font-weight:600;">8.70 ms</span></td><td>PASSED</td></tr>
+                        <tr><td>req_lat_340</td><td><span style="color: var(--accent-green); font-weight:600;">6.10 ms</span></td><td>PASSED</td></tr>`;
+                } else if (sql.includes("SHOW TABLES")) {
+                    headerBox.innerHTML = `<tr><th>TABLE NAME</th><th>ENGINE</th><th>DATA ROWS</th></tr>`;
+                    bodyBox.innerHTML = `
+                        <tr class="highlight-row"><td>guardrail_events</td><td>MergeTree</td><td>${totalCount.toLocaleString()}</td></tr>
+                        <tr><td>telemetry_logs_queue</td><td>Kafka</td><td>12 Partitions</td></tr>
+                        <tr><td>aggregated_metrics_mv</td><td>MaterializedView</td><td>24,190</td></tr>`;
+                } else {
+                    // Default Group By Status
+                    headerBox.innerHTML = `<tr><th>STATUS</th><th>TOTAL EVENTS</th><th>AVG LATENCY</th></tr>`;
+                    bodyBox.innerHTML = `
+                        <tr class="highlight-row"><td style="color: var(--accent-green); font-weight: 600;">PASSED</td><td>${passedCount.toLocaleString()}</td><td>3.42 ms</td></tr>
+                        <tr><td style="color: var(--accent-amber); font-weight: 600;">FLAGGED</td><td>${flaggedCount.toLocaleString()}</td><td>4.10 ms</td></tr>
+                        <tr><td style="color: var(--accent-red); font-weight: 600;">BLOCKED</td><td>${blockedCount.toLocaleString()}</td><td>3.85 ms</td></tr>`;
+                }
 
-                const tableBody = document.getElementById('tableBody');
-                tableBody.className = "highlight-row";
-                setTimeout(() => { tableBody.className = ""; }, 1500);
-
-                showToast(`⚡ ClickHouse SQL Executed! Query returned ${totalCount.toLocaleString()} aggregated rows in ${elapsed} ms.`);
+                showToast(`⚡ ClickHouse SQL Executed! Query returned results in ${elapsed} ms.`);
             }, 200);
         }
 
@@ -313,11 +364,6 @@ Response: Ready to ingest telemetry event.
             document.getElementById('totalIngestedVal').innerText = totalCount.toLocaleString();
             document.getElementById('throughputVal').innerText = (2850 + Math.floor(Math.random() * 20)).toLocaleString() + " req/s";
             document.getElementById('batchLatVal').innerText = `${latency} ms`;
-
-            // Update table counts in real time
-            document.getElementById('countPassed').innerText = passedCount.toLocaleString();
-            document.getElementById('countFlagged').innerText = flaggedCount.toLocaleString();
-            document.getElementById('countBlocked').innerText = blockedCount.toLocaleString();
 
             // Display JSON Response
             responseBox.innerText = JSON.stringify(resObj, null, 2);
