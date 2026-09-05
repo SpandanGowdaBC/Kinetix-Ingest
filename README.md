@@ -17,7 +17,6 @@
 
 ---
 
-![Kinetix-Ingest Dashboard](docs/dashboard.png)
 
 
 ## 🏗️ Design Patterns & Architecture
@@ -28,12 +27,8 @@
 
 ---
 
-![Kinetix-Ingest Dashboard](docs/dashboard.png)
 
 
----
-
-![Kinetix-Ingest Dashboard](docs/dashboard.png)
 
 
 ## Author
