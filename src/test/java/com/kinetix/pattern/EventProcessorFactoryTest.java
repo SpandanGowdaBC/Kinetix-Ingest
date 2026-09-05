@@ -1,25 +1,47 @@
 package com.kinetix.pattern;
 
+import com.kinetix.model.IngestionEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EventProcessorFactoryTest {
 
-    @Test
-    public void testStrategySelectionForHighRisk() {
-        RiskAnalysisStrategy strategy = EventProcessorFactory.getStrategy(0.85);
-        assertNotNull(strategy);
-        
-        double score = strategy.evaluateRisk("System override injection threat");
-        assertTrue(score >= 0.70, "High risk threat should score above 0.70");
+    private EventProcessorFactory factory;
+
+    @BeforeEach
+    public void setUp() {
+        DefaultRiskStrategy defaultStrategy = new DefaultRiskStrategy();
+        factory = new EventProcessorFactory(Map.of("defaultRiskStrategy", defaultStrategy));
     }
 
     @Test
-    public void testStrategySelectionForSafeQuery() {
-        RiskAnalysisStrategy strategy = EventProcessorFactory.getStrategy(0.10);
+    public void testDefaultStrategySelection() {
+        RiskAnalysisStrategy strategy = factory.getStrategy("UNKNOWN_EVENT");
         assertNotNull(strategy);
-        
-        double score = strategy.evaluateRisk("What are the API guidelines?");
-        assertTrue(score < 0.30, "Safe query should score below 0.30");
+
+        IngestionEvent internalEvent = IngestionEvent.builder()
+                .sourceIp("10.0.0.1")
+                .eventType("UNKNOWN_EVENT")
+                .build();
+
+        double score = strategy.calculateRisk(internalEvent);
+        assertEquals(0.05, score, 0.001, "Internal IP should evaluate to low risk score");
+    }
+
+    @Test
+    public void testExternalIpStrategy() {
+        RiskAnalysisStrategy strategy = factory.getStrategy("DEFAULT");
+        assertNotNull(strategy);
+
+        IngestionEvent externalEvent = IngestionEvent.builder()
+                .sourceIp("192.168.1.1")
+                .eventType("DEFAULT")
+                .build();
+
+        double score = strategy.calculateRisk(externalEvent);
+        assertEquals(0.45, score, 0.001, "External IP should evaluate to default risk score");
     }
 }
+

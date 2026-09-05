@@ -1,0 +1,10 @@
+com\kinetix\pattern\RiskAnalysisStrategy.class
+com\kinetix\KinetixApplication.class
+com\kinetix\model\IngestionEvent.class
+com\kinetix\service\KafkaTelemetryConsumer.class
+com\kinetix\service\ClickHouseNativeWriter.class
+com\kinetix\model\IngestionEvent$IngestionEventBuilder.class
+com\kinetix\controller\IngestionController.class
+com\kinetix\controller\AnalyticsController.class
+com\kinetix\pattern\DefaultRiskStrategy.class
+com\kinetix\pattern\EventProcessorFactory.class

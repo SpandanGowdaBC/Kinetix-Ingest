@@ -1,0 +1,9 @@
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\controller\AnalyticsController.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\controller\IngestionController.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\pattern\DefaultRiskStrategy.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\KinetixApplication.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\service\KafkaTelemetryConsumer.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\pattern\RiskAnalysisStrategy.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\service\ClickHouseNativeWriter.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\model\IngestionEvent.java
+C:\Users\Work\kinetix-ingest\src\main\java\com\kinetix\pattern\EventProcessorFactory.java

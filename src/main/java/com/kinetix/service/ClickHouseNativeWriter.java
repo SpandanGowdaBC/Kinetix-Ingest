@@ -56,6 +56,15 @@ public class ClickHouseNativeWriter {
                      "GROUP BY event_type ORDER BY total_count DESC LIMIT 10";
 
         Map<String, Object> params = Map.of("tenantId", tenantId);
-        return namedJdbcTemplate.queryForList(sql, params);
+        try {
+            return namedJdbcTemplate.queryForList(sql, params);
+        } catch (Exception e) {
+            log.error("[ClickHouse Query Error] Failed to query risk aggregations for tenant {}: {}", tenantId, e.getMessage());
+            return List.of(Map.of(
+                    "tenant_id", tenantId,
+                    "status", "OFFLINE_FALLBACK",
+                    "message", "ClickHouse database offline or table kinetix_db.risk_events not found"
+            ));
+        }
     }
 }

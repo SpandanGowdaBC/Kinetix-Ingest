@@ -15,9 +15,9 @@ public class KafkaTelemetryConsumer {
     }
 
     public void processTelemetryEvent(IngestionEvent event) {
-        log.info(() -> String.format("Received Kafka telemetry event: id=%s, status=%s, risk=%.2f",
-                event.getRequestId(), event.getStatus(), event.getRiskScore()));
+        log.info(() -> String.format("Received Kafka telemetry event: id=%s, type=%s, risk=%.2f",
+                event.getEventId(), event.getEventType(), event.getRiskScore()));
         
-        clickHouseWriter.writeBatch(java.util.List.of(event));
+        clickHouseWriter.batchInsertEvents(java.util.List.of(event));
     }
 }
