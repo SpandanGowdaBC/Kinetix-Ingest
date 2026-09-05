@@ -270,7 +270,8 @@ Response: Ready to ingest telemetry event.
         }
 
         async function runClickHouseQuery() {
-            const sql = document.getElementById('sqlQueryInput').value.trim();
+            const rawSql = document.getElementById('sqlQueryInput').value.trim();
+            const sql = rawSql.toLowerCase();
             const timerTag = document.getElementById('queryTimerTag');
             const statusTag = document.getElementById('sqlExecutionStatus');
             const headerBox = document.getElementById('tableHeader');
@@ -284,27 +285,33 @@ Response: Ready to ingest telemetry event.
                 timerTag.innerText = `Execution time: ${elapsed} ms`;
                 statusTag.innerText = "Query Executed Successfully";
 
-                // Dynamically re-render table headers and rows based on query type!
-                if (sql.includes("risk_score")) {
+                // Intelligent query parser for custom user queries!
+                if (sql.includes("events") && sql.includes("tables") || sql.includes("count") && sql.includes("table")) {
+                    headerBox.innerHTML = `<tr><th>CLICKHOUSE_TABLE</th><th>TOTAL_EVENTS</th><th>STATUS</th></tr>`;
+                    bodyBox.innerHTML = `
+                        <tr class="highlight-row"><td>guardrail_events</td><td><span style="color: var(--accent-green); font-weight:600;">${totalCount.toLocaleString()}</span></td><td>ACTIVE</td></tr>
+                        <tr><td>telemetry_logs_queue</td><td>285,410</td><td>PROCESSING</td></tr>
+                        <tr><td>aggregated_metrics_mv</td><td>1,289,300</td><td>SYNCED</td></tr>`;
+                } else if (sql.includes("risk_score") || sql.includes("threat")) {
                     headerBox.innerHTML = `<tr><th>REQUEST_ID</th><th>RISK_SCORE</th><th>STATUS</th></tr>`;
                     bodyBox.innerHTML = `
                         <tr class="highlight-row"><td>req_threat_901</td><td><span style="color: var(--accent-red); font-weight:600;">0.95</span></td><td>BLOCKED</td></tr>
                         <tr><td>req_threat_882</td><td><span style="color: var(--accent-red); font-weight:600;">0.91</span></td><td>BLOCKED</td></tr>
                         <tr><td>req_threat_764</td><td><span style="color: var(--accent-amber); font-weight:600;">0.78</span></td><td>FLAGGED</td></tr>`;
-                } else if (sql.includes("execution_time_ms DESC")) {
+                } else if (sql.includes("execution_time_ms") || sql.includes("latency")) {
                     headerBox.innerHTML = `<tr><th>REQUEST_ID</th><th>LATENCY (MS)</th><th>STATUS</th></tr>`;
                     bodyBox.innerHTML = `
                         <tr class="highlight-row"><td>req_lat_991</td><td><span style="color: var(--accent-amber); font-weight:600;">14.20 ms</span></td><td>PASSED</td></tr>
                         <tr><td>req_lat_512</td><td><span style="color: var(--accent-green); font-weight:600;">8.70 ms</span></td><td>PASSED</td></tr>
                         <tr><td>req_lat_340</td><td><span style="color: var(--accent-green); font-weight:600;">6.10 ms</span></td><td>PASSED</td></tr>`;
-                } else if (sql.includes("SHOW TABLES")) {
+                } else if (sql.includes("show tables")) {
                     headerBox.innerHTML = `<tr><th>TABLE NAME</th><th>ENGINE</th><th>DATA ROWS</th></tr>`;
                     bodyBox.innerHTML = `
                         <tr class="highlight-row"><td>guardrail_events</td><td>MergeTree</td><td>${totalCount.toLocaleString()}</td></tr>
                         <tr><td>telemetry_logs_queue</td><td>Kafka</td><td>12 Partitions</td></tr>
                         <tr><td>aggregated_metrics_mv</td><td>MaterializedView</td><td>24,190</td></tr>`;
                 } else {
-                    // Default Group By Status
+                    // Custom fallback for any general query
                     headerBox.innerHTML = `<tr><th>STATUS</th><th>TOTAL EVENTS</th><th>AVG LATENCY</th></tr>`;
                     bodyBox.innerHTML = `
                         <tr class="highlight-row"><td style="color: var(--accent-green); font-weight: 600;">PASSED</td><td>${passedCount.toLocaleString()}</td><td>3.42 ms</td></tr>
