@@ -3,8 +3,10 @@ package com.kinetix.pattern;
 import com.kinetix.model.IngestionEvent;
 import org.springframework.stereotype.Component;
 
-@Component("defaultRiskStrategy")
-public class DefaultRiskStrategy implements RiskAnalysisStrategy {
+import java.util.Map;
+
+@Component("standardRiskStrategy")
+public class StandardTenantRiskStrategy implements RiskAnalysisStrategy {
 
     @Override
     public double calculateRisk(IngestionEvent event) {
@@ -15,6 +17,14 @@ public class DefaultRiskStrategy implements RiskAnalysisStrategy {
         if (event.getSourceIp() != null && event.getSourceIp().startsWith("10.")) {
             return 0.05;
         }
-        return 0.45;
+
+        Map<String, Object> payload = event.getPayload();
+        if (payload != null) {
+            if ("HIGH".equalsIgnoreCase(String.valueOf(payload.get("severity")))) {
+                return 0.60;
+            }
+        }
+
+        return 0.35;
     }
 }

@@ -25,7 +25,7 @@ public class IngestionController {
     @PostMapping("/events")
     public ResponseEntity<Map<String, Object>> ingestEvents(@RequestBody List<IngestionEvent> events) {
         for (IngestionEvent event : events) {
-            RiskAnalysisStrategy strategy = processorFactory.getStrategy(event.getEventType());
+            RiskAnalysisStrategy strategy = processorFactory.getStrategy(event.getTenantId() != null ? event.getTenantId() : event.getEventType());
             event.setRiskScore(strategy.calculateRisk(event));
         }
 
