@@ -74,4 +74,29 @@ public class KafkaTelemetryConsumerTest {
         consumer.scheduledFlush();
         verify(clickHouseWriter, times(1)).batchInsertEvents(anyList());
     }
+
+    @Test
+    @DisplayName("Should ensure zero event loss when flushing batches larger than batch size threshold")
+    public void testZeroEventLossDuringBatchFlush() {
+        consumer.setBatchSize(3);
+
+        // Process 5 events (3 should trigger automatic flush, 2 remain in buffer)
+        for (int i = 1; i <= 5; i++) {
+            IngestionEvent event = IngestionEvent.builder()
+                    .eventId("evt_" + i)
+                    .tenantId("tenant-standard")
+                    .sourceIp("10.0.0." + i)
+                    .build();
+            consumer.processTelemetryEvent(event);
+        }
+
+        // Verify batch 1 of 3 items was flushed automatically
+        verify(clickHouseWriter, times(1)).batchInsertEvents(anyList());
+        assertEquals(2, consumer.getBufferSize(), "Remaining 2 events must stay in buffer without being dropped");
+
+        // Flush remaining 2 items
+        consumer.scheduledFlush();
+        assertEquals(0, consumer.getBufferSize());
+        verify(clickHouseWriter, times(2)).batchInsertEvents(anyList());
+    }
 }

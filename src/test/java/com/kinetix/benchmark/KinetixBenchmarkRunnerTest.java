@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 public class KinetixBenchmarkRunnerTest {
 
     @Test
-    @DisplayName("Run 100,000 Event Batch Ingestion Throughput Benchmark")
+    @DisplayName("Run 100,000 Event In-Memory Micro-Benchmark (Mocked ClickHouse)")
     public void runIngestionThroughputBenchmark() {
         NamedParameterJdbcTemplate mockJdbc = mock(NamedParameterJdbcTemplate.class);
         ClickHouseNativeWriter writer = new ClickHouseNativeWriter(mockJdbc);
@@ -63,12 +63,12 @@ public class KinetixBenchmarkRunnerTest {
         double avgBatchLatencyMs = (double) durationMs / (totalEvents / 1000.0);
 
         System.out.println("=========================================================");
-        System.out.println("🔥 KINETIX-INGEST 100,000 EVENT LOAD TEST BENCHMARK RESULT 🔥");
+        System.out.println("🔥 IN-MEMORY MICRO-BENCHMARK RESULT (MOCKED CLICKHOUSE WRITER) 🔥");
         System.out.println("---------------------------------------------------------");
         System.out.println("Total Events Processed     : " + totalEvents);
         System.out.println("Total Benchmark Time       : " + durationMs + " ms (" + String.format("%.3f", seconds) + " seconds)");
-        System.out.println("Measured Events Per Second : " + String.format("%.2f", eventsPerSecond) + " events/sec");
-        System.out.println("Average Batch Write Latency: " + String.format("%.2f", avgBatchLatencyMs) + " ms/batch (1000 records)");
+        System.out.println("In-Memory Rate (Mocked DB) : " + String.format("%.2f", eventsPerSecond) + " events/sec");
+        System.out.println("Average In-Memory Batch Overhead: " + String.format("%.2f", avgBatchLatencyMs) + " ms/batch (1000 records)");
         System.out.println("=========================================================");
     }
 }

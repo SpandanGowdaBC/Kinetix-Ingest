@@ -84,7 +84,7 @@ public class KafkaTelemetryConsumer {
 
         List<IngestionEvent> batchToInsert = new ArrayList<>();
         IngestionEvent event;
-        while ((event = eventBuffer.poll()) != null && batchToInsert.size() < batchSize) {
+        while (batchToInsert.size() < batchSize && (event = eventBuffer.poll()) != null) {
             batchToInsert.add(event);
         }
 

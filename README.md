@@ -1,5 +1,5 @@
 # Kinetix-Ingest ⚡
-> **High-Throughput Distributed Telemetry Ingestion & Real-Time Risk Analytics Engine**
+> **High-Throughput Event Ingestion & Risk Analytics Engine**
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot 3.2](https://img.shields.io/badge/Spring%20Boot-3.2.3-green.svg)](https://spring.io/projects/spring-boot)
@@ -13,10 +13,10 @@
 **Kinetix-Ingest** is a high-speed event ingestion engine built with **Java 21** and **Spring Boot 3.2**. It processes high-throughput telemetry streams from browser extensions, desktop agents, and API security gateways.
 
 It features:
-1. **Real-time Kafka Consumer (`@KafkaListener`)**: Subscribes to telemetry event topics with thread-safe queue buffering (`ConcurrentLinkedQueue`).
+1. **Kafka Consumer (`@KafkaListener`)**: Subscribes to telemetry event topics with thread-safe queue buffering (`ConcurrentLinkedQueue`).
 2. **Per-Tenant Strategy Pattern (`EventProcessorFactory`)**: Dynamically resolves risk analysis strategies keyed by tenant ID (`StrictTenantRiskStrategy`, `StandardTenantRiskStrategy`, `DefaultRiskStrategy`).
 3. **High-Speed ClickHouse Batching**: Replaces heavy ORM overhead with `NamedParameterJdbcTemplate` batch inserts, buffering up to configurable batch limits or fixed time-interval flushes.
-4. **100,000-Event Measured Load Test Benchmark**: Benchmarked locally at **~74,400 events/sec** with sub-14ms batch write latencies.
+4. **In-Memory Micro-Benchmark**: In-memory risk processing and queue batching evaluated at **~74,400 events/sec** using a mocked DB writer.
 
 ---
 
@@ -24,12 +24,12 @@ It features:
 
 ```text
 =========================================================
-🔥 KINETIX-INGEST 100,000 EVENT LOAD TEST BENCHMARK RESULT 🔥
+🔥 IN-MEMORY MICRO-BENCHMARK RESULT (MOCKED CLICKHOUSE WRITER) 🔥
 ---------------------------------------------------------
 Total Events Processed     : 100,000
 Total Execution Time       : 1,344 ms (1.344 seconds)
-Measured Ingestion Rate    : ~74,400 events/sec
-Average Batch Write Latency: 13.44 ms/batch (1,000 records/batch)
+In-Memory Rate (Mocked DB) : ~74,400 events/sec
+Average In-Memory Batch Overhead: 13.44 ms/batch (1,000 records/batch)
 =========================================================
 ```
 
