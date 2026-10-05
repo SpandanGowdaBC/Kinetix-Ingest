@@ -1,5 +1,5 @@
 # Kinetix-Ingest ⚡
-> **Event Ingestion & Risk Analytics Engine**
+> **Event Ingestion Service**
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot 3.2](https://img.shields.io/badge/Spring%20Boot-3.2.3-green.svg)](https://spring.io/projects/spring-boot)
@@ -20,7 +20,7 @@ It features:
 
 ---
 
-## 📊 Measured Load Test Benchmark Results
+## 📊 In-Memory Benchmark Results (mocked DB)
 
 ```text
 =========================================================
