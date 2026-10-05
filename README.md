@@ -1,5 +1,5 @@
 # Kinetix-Ingest ⚡
-> **High-Throughput Event Ingestion & Risk Analytics Engine**
+> **Event Ingestion & Risk Analytics Engine**
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot 3.2](https://img.shields.io/badge/Spring%20Boot-3.2.3-green.svg)](https://spring.io/projects/spring-boot)
@@ -10,12 +10,12 @@
 
 ## 📌 Executive Summary
 
-**Kinetix-Ingest** is a high-speed event ingestion engine built with **Java 21** and **Spring Boot 3.2**. It processes high-throughput telemetry streams from browser extensions, desktop agents, and API security gateways.
+**Kinetix-Ingest** is an event ingestion service built with **Java 21** and **Spring Boot 3.2**. It processes telemetry streams from browser extensions, desktop agents, and API security gateways.
 
 It features:
 1. **Kafka Consumer (`@KafkaListener`)**: Subscribes to telemetry event topics with thread-safe queue buffering (`ConcurrentLinkedQueue`).
 2. **Per-Tenant Strategy Pattern (`EventProcessorFactory`)**: Dynamically resolves risk analysis strategies keyed by tenant ID (`StrictTenantRiskStrategy`, `StandardTenantRiskStrategy`, `DefaultRiskStrategy`).
-3. **High-Speed ClickHouse Batching**: Replaces heavy ORM overhead with `NamedParameterJdbcTemplate` batch inserts, buffering up to configurable batch limits or fixed time-interval flushes.
+3. **ClickHouse Batching**: Replaces heavy ORM overhead with `NamedParameterJdbcTemplate` batch inserts, buffering up to configurable batch limits or fixed time-interval flushes.
 4. **In-Memory Micro-Benchmark**: In-memory risk processing and queue batching evaluated at **~74,400 events/sec** using a mocked DB writer.
 
 ---
@@ -103,7 +103,7 @@ docker-compose up -d
 ./mvnw spring-boot:run
 ```
 
-### 3. Run the Unit & Benchmark Test Suite (16 Tests)
+### 3. Run the Test Suite (16 unit tests + 1 benchmark)
 ```bash
 ./mvnw test
 ```

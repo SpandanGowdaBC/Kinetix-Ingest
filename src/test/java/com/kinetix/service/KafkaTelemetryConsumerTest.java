@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -99,4 +100,49 @@ public class KafkaTelemetryConsumerTest {
         assertEquals(0, consumer.getBufferSize());
         verify(clickHouseWriter, times(2)).batchInsertEvents(anyList());
     }
+
+    @Test
+    @DisplayName("Should flush exact batch size and retain remaining events without event loss")
+    @SuppressWarnings("unchecked")
+    public void testFlushBatchPartialRetentionAndOrdering() {
+        consumer.setBatchSize(100);
+
+        for (int i = 1; i <= 5; i++) {
+            IngestionEvent event = IngestionEvent.builder()
+                    .eventId("evt_" + i)
+                    .tenantId("tenant-standard")
+                    .sourceIp("10.0.0." + i)
+                    .build();
+            consumer.processTelemetryEvent(event);
+        }
+
+        assertEquals(5, consumer.getBufferSize());
+
+        consumer.setBatchSize(3);
+        int firstFlushCount = consumer.flushBatch();
+        assertEquals(3, firstFlushCount);
+        assertEquals(2, consumer.getBufferSize());
+
+        int secondFlushCount = consumer.flushBatch();
+        assertEquals(2, secondFlushCount);
+        assertEquals(0, consumer.getBufferSize());
+
+        org.mockito.ArgumentCaptor<List> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(clickHouseWriter, times(2)).batchInsertEvents(captor.capture());
+
+        List<List> capturedBatches = captor.getAllValues();
+        assertEquals(2, capturedBatches.size());
+
+        List<IngestionEvent> batch1 = (List<IngestionEvent>) (List<?>) capturedBatches.get(0);
+        assertEquals(3, batch1.size());
+        assertEquals("evt_1", batch1.get(0).getEventId());
+        assertEquals("evt_2", batch1.get(1).getEventId());
+        assertEquals("evt_3", batch1.get(2).getEventId());
+
+        List<IngestionEvent> batch2 = (List<IngestionEvent>) (List<?>) capturedBatches.get(1);
+        assertEquals(2, batch2.size());
+        assertEquals("evt_4", batch2.get(0).getEventId());
+        assertEquals("evt_5", batch2.get(1).getEventId());
+    }
+
 }
