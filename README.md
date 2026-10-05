@@ -103,7 +103,7 @@ docker-compose up -d
 ./mvnw spring-boot:run
 ```
 
-### 3. Run the Test Suite (16 unit tests + 1 benchmark)
+### 3. Run the Test Suite (17 unit tests + 1 benchmark)
 ```bash
 ./mvnw test
 ```
